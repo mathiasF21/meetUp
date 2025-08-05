@@ -1,29 +1,42 @@
 import express from "express";
-import db from "../db/connection.js";
+import { connectToDatabase } from "../db/connection.js";
 import { ObjectId } from "mongodb";
 
 const router = express.Router();
 
 // Get all events.
 router.get("/", async (req, res) => {
-    let collection = await db.collection("events");
-    let events = await collection.find({}).toArray();
-    res.send(events).status(200);
+    try {
+        const db = await connectToDatabase();
+        let collection = db.collection("events");
+        let events = await collection.find({}).toArray();
+        res.send(events).status(200);
+    } catch(err) {
+        console.error(err);
+        res.status(500).send("Error fetching events");
+    }
 });
 
 // Get a single event by id.
 router.get("/:id", async (req, res) => {
-    let collection = await db.collection("events");
-    let query = {_id: new ObjectId(req.params.id) };
-    let event = await collection.findOne(query);
+    try {
+        const db = await connectToDatabase();
+        let collection = db.collection("events");
+        let query = {_id: new ObjectId(req.params.id) };
+        let event = await collection.findOne(query);
 
-    if(!event) res.send("Event not found").status(404);
-    else res.send(event).status(200);
+        if(!event) res.send("Event not found").status(404);
+        else res.send(event).status(200);
+    } catch(err) {
+        console.error(err);
+        res.status(500).send("Error fetching event");
+    }
 });
 
 // Create a new event.
 router.post("/", async (req, res) => {
     try {
+        const db = await connectToDatabase();
         let newEvent = {
             name: req.body.name,
             description: req.body.description,
@@ -34,7 +47,7 @@ router.post("/", async (req, res) => {
             createdBy: req.body.createdBy,
         };
 
-        let collection = await db.collection("events");
+        let collection = db.collection("events");
         let result =  await collection.insertOne(newEvent)
         res.send(result).status(200);
     } catch(err) {
@@ -46,6 +59,7 @@ router.post("/", async (req, res) => {
 // Update an event by id.
 router.patch("/:id", async (req, res) => {
     try {
+        const db = await connectToDatabase();
         const query =  { _id: new ObjectId(req.params.id) };
         const updates = {
             $set: {
@@ -58,7 +72,7 @@ router.patch("/:id", async (req, res) => {
                 createdBy: req.body.createdBy,
             },
         };
-        let collection = await db.collection("events");
+        let collection = db.collection("events");
         let result =  await collection.updateOne(query, updates);
         
         res.send(result).status(200);
@@ -71,9 +85,10 @@ router.patch("/:id", async (req, res) => {
 // Delete an event by id.
 router.delete("/:id", async (req, res) => {
     try {
+        const db = await connectToDatabase();
         const query = { _id: new ObjectId(req.params.id)};
 
-        const collection = await db.collection("events");
+        const collection = db.collection("events");
         let result = await collection.deleteOne(query);
 
         res.send(result).status(200);
