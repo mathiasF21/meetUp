@@ -10,3 +10,4 @@ markdown_tools/
 deploy.zip
 .config.env
 config.env
+.temp
