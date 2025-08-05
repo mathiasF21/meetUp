@@ -4,14 +4,14 @@ import { ObjectId } from "mongodb";
 
 const router = express.Router();
 
-// Get all events
+// Get all events.
 router.get("/", async (req, res) => {
     let collection = await db.collection("events");
     let events = await collection.find({}).toArray();
     res.send(events).status(200);
 });
 
-// Get a single event
+// Get a single event by id.
 router.get("/:id", async (req, res) => {
     let collection = await db.collection("events");
     let query = {_id: new ObjectId(req.params.id) };
@@ -21,7 +21,7 @@ router.get("/:id", async (req, res) => {
     else res.send(event).status(200);
 });
 
-// Create a new event
+// Create a new event.
 router.post("/", async (req, res) => {
     try {
         let newEvent = {
@@ -42,6 +42,46 @@ router.post("/", async (req, res) => {
         res.status(500).send("Error adding event")
     }
 });
+
+// Update an event by id.
+router.patch("/:id", async (req, res) => {
+    try {
+        const query =  { _id: new ObjectId(req.params.id) };
+        const updates = {
+            $set: {
+                name: req.body.name,
+                description: req.body.description,
+                date: req.body.date,
+                location: req.body.location,
+                image: req.body.image,
+                tags: req.body.tags,
+                createdBy: req.body.createdBy,
+            },
+        };
+        let collection = await db.collection("events");
+        let result =  await collection.updateOne(query, updates);
+        
+        res.send(result).status(200);
+    } catch(err) {
+        console.error(err);
+        res.status(500).send("Error updating event");
+    }
+});
+
+// Delete an event by id.
+router.delete("/:id", async (req, res) => {
+    try {
+        const query = { _id: new ObjectId(req.params.id)};
+
+        const collection = await db.collection("events");
+        let result = await collection.deleteOne(query);
+
+        res.send(result).status(200);
+    } catch(err) {
+        console.error(err);
+        res.status(500).send("Error deleting event");
+    }
+})
 
 
 
