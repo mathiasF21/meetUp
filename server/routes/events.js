@@ -42,7 +42,6 @@ router.post("/", async (req, res) => {
             description: req.body.description,
             date: req.body.date,
             location: req.body.location,
-            image: req.body.image,
             tags: req.body.tags,
             createdBy: req.body.createdBy,
         };
